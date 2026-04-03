@@ -1,3 +1,5 @@
+import os
+import threading
 import requests
 import smtplib
 from email.mime.text import MIMEText
@@ -12,18 +14,33 @@ CORS(app)
 
 model = pickle.load(open('model.pkl', 'rb'))
 
-API_KEY = "59714bb6dcf89c1e7fbb22fcff7453f4ed2951fc"
+API_KEY = os.getenv("WAQI_API_KEY", "59714bb6dcf89c1e7fbb22fcff7453f4ed2951fc")
+
+# Email configuration from environment variables (safer for cloud deploy)
+EMAIL_NOTIFICATIONS = os.getenv("EMAIL_NOTIFICATIONS", "false").lower() in ("1", "true", "yes")
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
+SMTP_USE_SSL = os.getenv("SMTP_USE_SSL", "true").lower() in ("1", "true", "yes")
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
+EMAIL_FROM = os.getenv("EMAIL_FROM", SMTP_USER)
+EMAIL_TO = os.getenv("EMAIL_TO", SMTP_USER)
 
 
 # ✅ AUTO AQI FUNCTION
 def get_aqi():
     url = f"https://api.waqi.info/feed/chennai/?token={API_KEY}"
-    
-    response = requests.get(url)
-    data = response.json()
-    
-    if data["status"] == "ok":
-        iaqi = data["data"]["iaqi"]
+
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        print("AQI API error:", e)
+        return 0, 0, 0, 0, 0, 0
+
+    if data.get("status") == "ok":
+        iaqi = data["data"].get("iaqi", {})
 
         pm25 = iaqi.get("pm25", {}).get("v", 0)
         pm10 = iaqi.get("pm10", {}).get("v", 0)
@@ -33,31 +50,50 @@ def get_aqi():
         o3 = iaqi.get("o3", {}).get("v", 0)
 
         return pm25, pm10, no2, so2, co, o3
-    else:
-        return 0, 0, 0, 0, 0, 0
+
+    return 0, 0, 0, 0, 0, 0
 
 
 # ✅ EMAIL ALERT
-def send_email_alert(aqi_value):
+
+def _send_email_task(subject, body):
+    if not EMAIL_NOTIFICATIONS:
+        print("Email notifications are disabled. Skipping send.")
+        return
+
+    if not SMTP_USER or not SMTP_PASS or not EMAIL_TO:
+        print("Email settings are incomplete; cannot send alert.")
+        return
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = EMAIL_FROM
+    msg["To"] = EMAIL_TO
+
     try:
-        sender_email = "janu012006@gmail.com"
-        receiver_email = "janu012006@gmail.com"
-        password = "ewwutqpdpypfqgcs"
+        if SMTP_USE_SSL:
+            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10, context=ssl.create_default_context()) as server:
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+        else:
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10) as server:
+                server.starttls(context=ssl.create_default_context())
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
 
-        message = f"🚨 ALERT! AQI Level is {aqi_value}. Hazardous air quality. Stay indoors!"
-
-        msg = MIMEText(message)
-        msg["Subject"] = "AQI Hazard Alert"
-        msg["From"] = sender_email
-        msg["To"] = receiver_email
-
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-            server.login(sender_email, password)
-            server.sendmail(sender_email, receiver_email, msg.as_string())
         print("✅ Email sent successfully")
     except Exception as e:
-        print("Email error:", e)
+        print("Email send failed:", e)
+
+
+def send_email_alert(aqi_value):
+    alert_message = f"🚨 ALERT! AQI Level is {aqi_value}. Hazardous air quality. Stay indoors!"
+    thread = threading.Thread(
+        target=_send_email_task,
+        args=("AQI Hazard Alert", alert_message),
+        daemon=True,
+    )
+    thread.start()
 
 
 # ✅ HOME ROUTE
