@@ -38,22 +38,22 @@ def get_aqi():
 
 # ✅ EMAIL ALERT
 def send_email_alert(aqi_value):
-    sender_email = "janu012006@gmail.com"
-    receiver_email = "janu012006@gmail.com"
-    password = "vvnu sfik qibs doyb"
-
-    message = f"🚨 ALERT! AQI Level is {aqi_value}. Hazardous air quality. Stay indoors!"
-
-    msg = MIMEText(message)
-    msg["Subject"] = "AQI Hazard Alert"
-    msg["From"] = "janu012006@gmail.com"
-    msg["To"] = "janu012006@gmail.com"
-
     try:
+        sender_email = "janu012006@gmail.com"
+        receiver_email = "janu012006@gmail.com"
+        password = "vvnusfiqibsdoyb"
+
+        message = f"🚨 ALERT! AQI Level is {aqi_value}. Hazardous air quality. Stay indoors!"
+
+        msg = MIMEText(message)
+        msg["Subject"] = "AQI Hazard Alert"
+        msg["From"] = sender_email
+        msg["To"] = receiver_email
+
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
-        server.login("janu012006@gmail.com", "vvnusfiqibsdoyb")
-        server.sendmail("janu012006@gmail.com", "janu012006@gmail.com", msg.as_string())
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, msg.as_string())
         server.quit()
         print("✅ Email sent successfully")
     except Exception as e:
