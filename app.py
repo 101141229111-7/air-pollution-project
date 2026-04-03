@@ -46,17 +46,17 @@ def send_email_alert(aqi_value):
 
     msg = MIMEText(message)
     msg["Subject"] = "AQI Hazard Alert"
-    msg["From"] = sender_email
-    msg["To"] = receiver_email
+    msg["From"] = "janu012006@gmail.com"
+    msg["To"] = "janu012006@gmail.com"
 
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
-        server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
+        server.login("janu012006@gmail.com", "vvnu sfik qibs doyb")
+        server.sendmail("janu012006@gmail.com", "janu012006@gmail.com", msg.as_string())
         server.quit()
-    except:
-        pass   # prevents crash during deployment
+    except Exception as e:
+    print("Email error:", e)
 
 
 # ✅ HOME ROUTE
