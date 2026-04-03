@@ -41,7 +41,7 @@ def send_email_alert(aqi_value):
     try:
         sender_email = "janu012006@gmail.com"
         receiver_email = "janu012006@gmail.com"
-        password = "vvnusfiqibsdoyb"
+        password = "ewwutqpdpypfqgcs"
 
         message = f"🚨 ALERT! AQI Level is {aqi_value}. Hazardous air quality. Stay indoors!"
 
