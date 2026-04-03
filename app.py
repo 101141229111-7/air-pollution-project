@@ -3,7 +3,7 @@ import threading
 import requests
 import smtplib
 from email.mime.text import MIMEText
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from flask_cors import CORS
 import pickle
 import pandas as pd
@@ -12,7 +12,11 @@ import ssl
 app = Flask(__name__)
 CORS(app)
 
-model = pickle.load(open('model.pkl', 'rb'))
+try:
+    model = pickle.load(open('model.pkl', 'rb'))
+except Exception as e:
+    print("Error loading model:", e)
+    model = None
 
 API_KEY = os.getenv("WAQI_API_KEY", "59714bb6dcf89c1e7fbb22fcff7453f4ed2951fc")
 
@@ -152,8 +156,11 @@ def home():
 
 
 # ✅ MANUAL INPUT ROUTE
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['GET', 'POST'])
 def predict():
+    if request.method == 'GET':
+        return redirect('/')
+
     pm25 = float(request.form['pm25'])
     pm10 = float(request.form['pm10'])
     no2 = float(request.form['no2'])
