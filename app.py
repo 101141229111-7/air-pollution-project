@@ -5,6 +5,7 @@ from flask import Flask, render_template, request
 from flask_cors import CORS
 import pickle
 import pandas as pd
+import ssl
 
 app = Flask(__name__)
 CORS(app)
@@ -50,11 +51,10 @@ def send_email_alert(aqi_value):
         msg["From"] = sender_email
         msg["To"] = receiver_email
 
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
-        server.quit()
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, msg.as_string())
         print("✅ Email sent successfully")
     except Exception as e:
         print("Email error:", e)
