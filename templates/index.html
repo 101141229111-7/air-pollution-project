@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AQI Prediction</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(to right, #74ebd5, #ACB6E5);
+            text-align: center;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            margin: 50px auto;
+            width: 400px;
+            border-radius: 15px;
+            box-shadow: 0px 0px 20px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 8px;
+            margin: 8px;
+            border-radius: 8px;
+            border: 1px solid gray;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🌍 AQI Prediction</h1>
+
+    <form action="/predict" method="post">
+        <input type="text" name="pm25" value="80" placeholder="PM2.5"><br>
+        <input type="text" name="pm10" value="90" placeholder="PM10"><br>
+        <input type="text" name="no2" value="100" placeholder="NO2"><br>
+        <input type="text" name="so2" value="70" placeholder="SO2"><br>
+        <input type="text" name="co" value="1" placeholder="CO"><br>
+        <input type="text" name="o3" value="80" placeholder="O3"><br>
+
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if prediction %}
+    <div class="result">
+        <h2>Predicted AQI: {{ prediction }}</h2>
+
+        <h2 style="color: {{ color if color else 'black' }}">
+            Category: {{ category if category else 'N/A' }}
+        </h2>
+
+        <h3>{{ message if message else '' }}</h3>
+
+        <p>PM2.5: {{ pm25 if pm25 else 0 }}</p>
+        <p>PM10: {{ pm10 if pm10 else 0 }}</p>
+        <p>NO2: {{ no2 if no2 else 0 }}</p>
+        <p>SO2: {{ so2 if so2 else 0 }}</p>
+        <p>CO: {{ co if co else 0 }}</p>
+        <p>O3: {{ o3 if o3 else 0 }}</p>
+    </div>
+    {% endif %}
+
+    <a href="/graph">
+        <button>View AQI Graph</button>
+    </a>
+
+</div>
+
+{% if alert %}
+<script>
+    alert("{{ alert }}");
+</script>
+{% endif %}
+
+</body>
+</html>
