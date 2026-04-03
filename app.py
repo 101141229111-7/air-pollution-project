@@ -52,11 +52,12 @@ def send_email_alert(aqi_value):
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
-        server.login("janu012006@gmail.com", "vvnu sfik qibs doyb")
+        server.login("janu012006@gmail.com", "vvnusfiqibsdoyb")
         server.sendmail("janu012006@gmail.com", "janu012006@gmail.com", msg.as_string())
         server.quit()
+        print("✅ Email sent successfully")
     except Exception as e:
-    print("Email error:", e)
+        print("Email error:", e)
 
 
 # ✅ HOME ROUTE
